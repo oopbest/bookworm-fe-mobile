@@ -5,10 +5,11 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/AuthStore";
 import { useThemeStore } from "@/store/ThemeStore";
@@ -31,6 +32,7 @@ interface BookItem {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { token } = useAuthStore();
   const { colors } = useThemeStore();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -126,7 +128,11 @@ export default function HomeScreen() {
     });
 
     return (
-      <View style={styles.bookCard}>
+      <TouchableOpacity
+        style={styles.bookCard}
+        onPress={() => router.push(`/book/${item._id}` as any)} // 👈 แตะเพื่อเปิดหน้าดูรายละเอียด
+        activeOpacity={0.85}
+      >
         {/* ข้อมูลเจ้าของโพสต์ */}
         <View style={styles.bookHeader}>
           <View style={styles.userInfo}>
@@ -162,7 +168,7 @@ export default function HomeScreen() {
           <Text style={styles.caption}>{item.caption}</Text>
           <Text style={styles.date}>{formattedDate}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
