@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,9 +11,9 @@ import { Image } from "expo-image";
 import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/AuthStore";
+import { useThemeStore } from "@/store/ThemeStore";
 import { API_URL } from "../../../constants/api";
-import COLORS from "../../../constants/colors";
-import styles from "../../../assets/styles/home.styles";
+import createStyles from "../../../assets/styles/home.styles";
 
 // 1. กำหนด Type สำหรับข้อมูลหนังสือจาก Backend
 interface BookItem {
@@ -32,6 +32,8 @@ interface BookItem {
 
 export default function HomeScreen() {
   const { token } = useAuthStore();
+  const { colors } = useThemeStore();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -168,7 +170,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -196,7 +198,7 @@ export default function HomeScreen() {
             <Ionicons
               name="book-outline"
               size={64}
-              color={COLORS.textSecondary}
+              color={colors.textSecondary}
             />
             <Text style={styles.emptyText}>No books added yet</Text>
             <Text style={styles.emptySubtext}>
@@ -209,8 +211,8 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         // โหลดหน้าถัดไปเมื่อเลื่อนถึงล่างสุด
@@ -219,7 +221,7 @@ export default function HomeScreen() {
         ListFooterComponent={
           loadingMore ? (
             <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color={COLORS.primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             </View>
           ) : null
         }

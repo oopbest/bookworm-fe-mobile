@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,13 +15,15 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/store/AuthStore";
+import { useThemeStore } from "@/store/ThemeStore";
 import { API_URL } from "../../../constants/api";
-import COLORS from "../../../constants/colors";
-import styles from "../../../assets/styles/create.styles";
+import createStyles from "../../../assets/styles/create.styles";
 
 export default function CreateScreen() {
   const router = useRouter();
   const { token } = useAuthStore();
+  const { colors } = useThemeStore(); // 👈 ดึง colors
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [rating, setRating] = useState(5);
@@ -136,13 +138,13 @@ export default function CreateScreen() {
                 <Ionicons
                   name="book-outline"
                   size={20}
-                  color={COLORS.textSecondary}
+                  color={colors.textSecondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter book title..."
-                  placeholderTextColor={COLORS.placeholderText}
+                  placeholderTextColor={colors.placeholderText}
                   value={title}
                   onChangeText={setTitle}
                 />
@@ -174,7 +176,7 @@ export default function CreateScreen() {
               <TextInput
                 style={styles.textArea}
                 placeholder="Write your thoughts or review about this book..."
-                placeholderTextColor={COLORS.placeholderText}
+                placeholderTextColor={colors.placeholderText}
                 value={caption}
                 onChangeText={setCaption}
                 multiline
@@ -201,7 +203,7 @@ export default function CreateScreen() {
                     <Ionicons
                       name="image-outline"
                       size={44}
-                      color={COLORS.textSecondary}
+                      color={colors.textSecondary}
                     />
                     <Text style={styles.placeholderText}>
                       Tap to select cover image
@@ -218,13 +220,13 @@ export default function CreateScreen() {
               activeOpacity={0.8}
             >
               {isSubmitting ? (
-                <ActivityIndicator color={COLORS.white} />
+                <ActivityIndicator color={colors.white} />
               ) : (
                 <>
                   <Ionicons
                     name="cloud-upload-outline"
                     size={20}
-                    color={COLORS.white}
+                    color={colors.white}
                     style={styles.buttonIcon}
                   />
                   <Text style={styles.buttonText}>Share Book</Text>

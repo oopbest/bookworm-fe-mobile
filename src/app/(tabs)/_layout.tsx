@@ -1,18 +1,19 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import COLORS from "../../../constants/colors";
+import { useThemeStore } from "@/store/ThemeStore";
 
 export default function TabLayout() {
+  const { colors } = useThemeStore();
   return (
     <Tabs
       screenOptions={{
         headerShown: false, // ซ่อน Header ด้านบน เพราะแต่ละหน้าจะมี Header ของตัวเอง
-        tabBarActiveTintColor: COLORS.primary, // สีไอคอน/ข้อความแท็บที่กำลังเลือก
-        tabBarInactiveTintColor: COLORS.textSecondary, // สีแท็บที่ไม่ได้เลือก
+        tabBarActiveTintColor: colors.primary, // สีไอคอน/ข้อความแท็บที่กำลังเลือก
+        tabBarInactiveTintColor: colors.textSecondary, // สีแท็บที่ไม่ได้เลือก
         tabBarStyle: {
-          backgroundColor: COLORS.cardBackground,
-          borderTopColor: COLORS.border,
+          backgroundColor: colors.cardBackground,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,

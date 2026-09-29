@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -13,11 +13,11 @@ import { Image } from "expo-image";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/AuthStore";
+import { useThemeStore, ThemeKey } from "@/store/ThemeStore"; // 👈 1. นำเข้า ThemeStore
+import { THEMES } from "../../../constants/colors";
 import { API_URL } from "../../../constants/api";
-import COLORS from "../../../constants/colors";
-import styles from "../../../assets/styles/profile.styles";
+import createStyles from "../../../assets/styles/profile.styles"; // 👈 2. createStyles
 
-// 1. Interface สำหรับหนังสือของผู้ใช้
 interface UserBook {
   _id: string;
   title: string;
@@ -27,15 +27,26 @@ interface UserBook {
   createdAt: string;
 }
 
+// ข้อมูลตัวเลือกธีมทั้ง 4 แบบ
+const THEME_OPTIONS: { key: ThemeKey; label: string; primary: string }[] = [
+  { key: "forest", label: "Forest", primary: THEMES.forest.primary },
+  { key: "retro", label: "Retro", primary: THEMES.retro.primary },
+  { key: "ocean", label: "Ocean", primary: THEMES.ocean.primary },
+  { key: "blossom", label: "Blossom", primary: THEMES.blossom.primary },
+];
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, token, logout } = useAuthStore();
+  const { currentTheme, colors, setTheme } = useThemeStore(); // 👈 3. ดึง State ธีม
+  const styles = useMemo(() => createStyles(colors), [colors]); // 👈 4. อัปเดตสไตล์ตามสีธีม
+
   const [books, setBooks] = useState<UserBook[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // 2. ดึงรายการหนังสือเฉพาะของผู้ใช้คนนี้
+  // ดึงรายการหนังสือเฉพาะของผู้ใช้คนนี้
   const fetchUserBooks = async (isRefresh: boolean = false) => {
     if (!token) return;
 
@@ -59,20 +70,17 @@ export default function ProfileScreen() {
     }
   };
 
-  // ดึงข้อมูลใหม่ทุกครั้งที่สลับเข้ามาที่แท็บ Profile
   useFocusEffect(
     useCallback(() => {
       fetchUserBooks();
     }, [token]),
   );
 
-  // 3. ดึงลงเพื่อ Refresh (Pull-to-Refresh)
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     fetchUserBooks(true);
   }, [token]);
 
-  // 4. ฟังก์ชันลบหนังสือ (Delete Book)
   const handleDeleteBook = (bookId: string) => {
     Alert.alert(
       "Delete Book",
@@ -93,7 +101,6 @@ export default function ProfileScreen() {
               });
 
               if (response.ok) {
-                // ลบออกจาก State ทันทีเพื่อให้ UI อัปเดตทันใจ
                 setBooks((prev) => prev.filter((b) => b._id !== bookId));
                 Alert.alert("Success", "Book deleted successfully! 🗑️");
               } else {
@@ -111,7 +118,6 @@ export default function ProfileScreen() {
     );
   };
 
-  // 5. ฟังก์ชันออกจากระบบ (Logout)
   const handleLogout = () => {
     Alert.alert("Log Out", "Are you sure you want to log out of BookWorm?", [
       { text: "Cancel", style: "cancel" },
@@ -126,7 +132,6 @@ export default function ProfileScreen() {
     ]);
   };
 
-  // 6. แสดงดาวตามเรตติ้ง (1 - 5 ดาว)
   const renderStars = (rating: number) => {
     return (
       <View style={styles.ratingContainer}>
@@ -143,7 +148,6 @@ export default function ProfileScreen() {
     );
   };
 
-  // 7. การ์ดแสดงผลหนังสือแต่ละเล่ม
   const renderBookItem = ({ item }: { item: UserBook }) => {
     const formattedDate = new Date(item.createdAt).toLocaleDateString("en-US", {
       month: "short",
@@ -155,14 +159,12 @@ export default function ProfileScreen() {
 
     return (
       <View style={styles.bookItem}>
-        {/* รูปปกหนังสือ */}
         <Image
           source={{ uri: item.coverImage }}
           style={styles.bookImage}
           contentFit="cover"
         />
 
-        {/* ข้อมูลหนังสือ */}
         <View style={styles.bookInfo}>
           <View>
             <Text style={styles.bookTitle} numberOfLines={1}>
@@ -176,7 +178,6 @@ export default function ProfileScreen() {
           <Text style={styles.bookDate}>{formattedDate}</Text>
         </View>
 
-        {/* ปุ่มลบ */}
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDeleteBook(item._id)}
@@ -193,7 +194,6 @@ export default function ProfileScreen() {
     );
   };
 
-  // 8. ส่วนหัวของหน้า (Profile Info + ปุ่ม Logout + หัวข้อรายการหนังสือ)
   const renderHeader = () => {
     const avatarUri =
       user?.profileImage ||
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
 
     return (
       <View>
-        {/* ข้อมูลผู้ใช้ */}
+        {/* ข้อมูลโปรไฟล์ผู้ใช้ */}
         <View style={styles.profileHeader}>
           <Image
             source={{ uri: avatarUri }}
@@ -219,17 +219,44 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* 🎨 กล่องเลือกธีม (App Theme Selector) */}
+        <View style={styles.themeSection}>
+          <Text style={styles.themeTitle}>App Theme</Text>
+          <View style={styles.themeOptions}>
+            {THEME_OPTIONS.map((t) => (
+              <TouchableOpacity
+                key={t.key}
+                style={[
+                  styles.themeCard,
+                  currentTheme === t.key && styles.themeCardActive,
+                ]}
+                onPress={() => setTheme(t.key)}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[styles.themeCircle, { backgroundColor: t.primary }]}
+                >
+                  {currentTheme === t.key && (
+                    <Ionicons name="checkmark" size={16} color="#ffffff" />
+                  )}
+                </View>
+                <Text style={styles.themeName}>{t.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* ปุ่ม Logout */}
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
           activeOpacity={0.8}
         >
-          <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+          <Ionicons name="log-out-outline" size={20} color={colors.white} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
-        {/* หัวข้อส่วนหนังสือของฉัน */}
+        {/* หัวข้อ Your Books */}
         <View style={styles.booksHeader}>
           <Text style={styles.booksTitle}>Your Books</Text>
           <Text style={styles.booksCount}>{books.length} books</Text>
@@ -241,7 +268,7 @@ export default function ProfileScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -255,13 +282,12 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.booksList}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={renderHeader}
-        // กรณีผู้ใช้ยังไม่เคยโพสต์หนังสือ
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons
               name="book-outline"
               size={56}
-              color={COLORS.textSecondary}
+              color={colors.textSecondary}
             />
             <Text style={styles.emptyText}>
               You haven't posted any books yet
@@ -279,8 +305,8 @@ export default function ProfileScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       />
