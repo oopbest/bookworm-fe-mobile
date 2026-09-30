@@ -18,6 +18,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import { useThemeStore } from "@/store/ThemeStore";
 import { API_URL } from "../../../constants/api";
 import createStyles from "../../../assets/styles/create.styles";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -123,133 +124,138 @@ export default function CreateScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      edges={["top"]}
     >
-      <ScrollView
-        style={styles.scrollViewStyle}
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
       >
-        <View style={styles.card}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Add New Book</Text>
-            <Text style={styles.subtitle}>
-              Share your book review and ratings with others
-            </Text>
-          </View>
-          <View style={styles.form}>
-            {/* 1. Title */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Book Title</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons
-                  name="book-outline"
-                  size={20}
-                  color={colors.textSecondary}
-                  style={styles.inputIcon}
-                />
+        <ScrollView
+          style={styles.scrollViewStyle}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.card}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Add New Book</Text>
+              <Text style={styles.subtitle}>
+                Share your book review and ratings with others
+              </Text>
+            </View>
+            <View style={styles.form}>
+              {/* 1. Title */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Book Title</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons
+                    name="book-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter book title..."
+                    placeholderTextColor={colors.placeholderText}
+                    value={title}
+                    onChangeText={setTitle}
+                  />
+                </View>
+              </View>
+
+              {/* 2. Rating 1 - 5 */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Rating: {rating} / 5</Text>
+                <View style={styles.ratingContainer}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <TouchableOpacity
+                      key={star}
+                      style={styles.starButton}
+                      onPress={() => setRating(star)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={star <= rating ? "star" : "star-outline"}
+                        size={28}
+                        color="#fbc02d"
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* 3. Caption / Review */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Caption / Review</Text>
                 <TextInput
-                  style={styles.input}
-                  placeholder="Enter book title..."
+                  style={styles.textArea}
+                  placeholder="Write your thoughts or review about this book..."
                   placeholderTextColor={colors.placeholderText}
-                  value={title}
-                  onChangeText={setTitle}
+                  value={caption}
+                  onChangeText={setCaption}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
                 />
               </View>
-            </View>
 
-            {/* 2. Rating 1 - 5 */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Rating: {rating} / 5</Text>
-              <View style={styles.ratingContainer}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity
-                    key={star}
-                    style={styles.starButton}
-                    onPress={() => setRating(star)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name={star <= rating ? "star" : "star-outline"}
-                      size={28}
-                      color="#fbc02d"
+              {/* 4. Cover Image */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Cover Image</Text>
+                <TouchableOpacity
+                  style={styles.imagePicker}
+                  onPress={pickImage}
+                  activeOpacity={0.8}
+                >
+                  {coverImage ? (
+                    <Image
+                      source={{ uri: coverImage }}
+                      style={styles.previewImage}
+                      resizeMode="cover"
                     />
-                  </TouchableOpacity>
-                ))}
+                  ) : (
+                    <View style={styles.placeholderContainer}>
+                      <Ionicons
+                        name="image-outline"
+                        size={44}
+                        color={colors.textSecondary}
+                      />
+                      <Text style={styles.placeholderText}>
+                        Tap to select cover image
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
-            </View>
 
-            {/* 3. Caption / Review */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Caption / Review</Text>
-              <TextInput
-                style={styles.textArea}
-                placeholder="Write your thoughts or review about this book..."
-                placeholderTextColor={colors.placeholderText}
-                value={caption}
-                onChangeText={setCaption}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-            </View>
-
-            {/* 4. Cover Image */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Cover Image</Text>
+              {/* 5. Share Book */}
               <TouchableOpacity
-                style={styles.imagePicker}
-                onPress={pickImage}
+                style={[styles.button, isSubmitting && { opacity: 0.8 }]}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
                 activeOpacity={0.8}
               >
-                {coverImage ? (
-                  <Image
-                    source={{ uri: coverImage }}
-                    style={styles.previewImage}
-                    resizeMode="cover"
-                  />
+                {isSubmitting ? (
+                  <ActivityIndicator color={colors.white} />
                 ) : (
-                  <View style={styles.placeholderContainer}>
+                  <>
                     <Ionicons
-                      name="image-outline"
-                      size={44}
-                      color={colors.textSecondary}
+                      name="cloud-upload-outline"
+                      size={20}
+                      color={colors.white}
+                      style={styles.buttonIcon}
                     />
-                    <Text style={styles.placeholderText}>
-                      Tap to select cover image
-                    </Text>
-                  </View>
+                    <Text style={styles.buttonText}>Share Book</Text>
+                  </>
                 )}
               </TouchableOpacity>
             </View>
-
-            {/* 5. Share Book */}
-            <TouchableOpacity
-              style={[styles.button, isSubmitting && { opacity: 0.8 }]}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-              activeOpacity={0.8}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator color={colors.white} />
-              ) : (
-                <>
-                  <Ionicons
-                    name="cloud-upload-outline"
-                    size={20}
-                    color={colors.white}
-                    style={styles.buttonIcon}
-                  />
-                  <Text style={styles.buttonText}>Share Book</Text>
-                </>
-              )}
-            </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

@@ -32,7 +32,7 @@ const createStyles = (COLORS: ThemeColors = FOREST) =>
     },
     title: {
       fontSize: 24,
-      fontWeight: "700",
+      fontFamily: "JetBrainsMono-Medium",
       color: COLORS.textPrimary,
       marginBottom: 8,
     },
@@ -94,7 +94,7 @@ const createStyles = (COLORS: ThemeColors = FOREST) =>
     },
     imagePicker: {
       width: "100%",
-      height: 200,
+      height: 170,
       backgroundColor: COLORS.inputBackground,
       borderRadius: 12,
       borderWidth: 1,

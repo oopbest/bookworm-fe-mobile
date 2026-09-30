@@ -40,9 +40,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: COLORS.textPrimary,
+    fontSize: 24,
+    fontFamily: "JetBrainsMono-Medium",
+    color: COLORS.primary,
     marginBottom: 8,
   },
   subtitle: {
