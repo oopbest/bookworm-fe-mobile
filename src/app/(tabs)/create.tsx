@@ -33,31 +33,41 @@ export default function CreateScreen() {
 
   // 1. ฟังก์ชันเลือกรูปภาพจากเครื่อง
   const pickImage = async () => {
-    // ขอ Permission เข้าถึงรูปภาพในเครื่อง
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert(
-        "Permission required",
-        "Please allow access to your photo library to select a cover image.",
-      );
-      return;
-    }
-    // เปิดคลังรูปภาพ
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.5,
-      base64: true, // ดึง Base64 เพื่อส่งขึ้น Cloudinary ผ่าน Backend
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setCoverImage(asset.uri);
+    try {
+      // 1. ขอ Permission เข้าถึงรูปภาพในเครื่อง
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      // ปรับให้ยืดหยุ่นขึ้น (ดึง mimeType จริงจาก asset เผื่อผู้ใช้เลือกไฟล์ .png หรือ .webp):
-      const mimeType = asset.mimeType || "image/jpeg";
-      setImageBase64(`data:${mimeType};base64,${asset.base64}`);
+      if (!permissionResult.granted) {
+        Alert.alert(
+          "Permission required",
+          "Please allow access to your photo library to select a cover image.",
+        );
+        return;
+      }
+
+      // 2. เปิดคลังรูปภาพ
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+        base64: true, // ดึง Base64 เพื่อส่งขึ้น Cloudinary ผ่าน Backend
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setCoverImage(asset.uri);
+
+        // ปรับให้ยืดหยุ่นขึ้น (ดึง mimeType จริงจาก asset เผื่อผู้ใช้เลือกไฟล์ .png หรือ .webp)
+        const mimeType = asset.mimeType || "image/jpeg";
+
+        // แปลงรูปภาพเป็น base64 เพื่อส่งขึ้น Cloudinary
+        setImageBase64(`data:${mimeType};base64,${asset.base64}`);
+      }
+    } catch (error) {
+      console.log("Error picking image:", error);
+      Alert.alert("Error", "Failed to select image. Please try again.");
     }
   };
 
@@ -131,7 +141,7 @@ export default function CreateScreen() {
             </Text>
           </View>
           <View style={styles.form}>
-            {/* 1. ชื่อหนังสือ (Title) */}
+            {/* 1. Title */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Book Title</Text>
               <View style={styles.inputContainer}>
@@ -150,7 +160,8 @@ export default function CreateScreen() {
                 />
               </View>
             </View>
-            {/* 2. ให้คะแนนดาว (Rating 1 - 5) */}
+
+            {/* 2. Rating 1 - 5 */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Rating: {rating} / 5</Text>
               <View style={styles.ratingContainer}>
@@ -170,7 +181,8 @@ export default function CreateScreen() {
                 ))}
               </View>
             </View>
-            {/* 3. คำรีวิว (Caption) */}
+
+            {/* 3. Caption / Review */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Caption / Review</Text>
               <TextInput
@@ -184,7 +196,8 @@ export default function CreateScreen() {
                 textAlignVertical="top"
               />
             </View>
-            {/* 4. เลือกรูปปก (Cover Image) */}
+
+            {/* 4. Cover Image */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Cover Image</Text>
               <TouchableOpacity
@@ -212,7 +225,8 @@ export default function CreateScreen() {
                 )}
               </TouchableOpacity>
             </View>
-            {/* 5. ปุ่มบันทึก (Submit) */}
+
+            {/* 5. Share Book */}
             <TouchableOpacity
               style={[styles.button, isSubmitting && { opacity: 0.8 }]}
               onPress={handleSubmit}
